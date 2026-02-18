@@ -4,9 +4,9 @@ import * as profileService from "../services/profile.service"
 
 // GET ALL USERS
 export async function GET() {
-  const users = await profileService.get();
+  const data = await profileService.get();
 
-  return NextResponse.json(users);
+  return Response.json(data);
 }
 
 // CREATE USER
