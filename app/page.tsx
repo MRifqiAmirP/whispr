@@ -7,7 +7,7 @@ export default async function Home() {
   return (
     <HomeClient
       initialUsers={data.users}
-      totalUsers={data.total}
+      initialTotal={data.total}
     />
   );
 }
