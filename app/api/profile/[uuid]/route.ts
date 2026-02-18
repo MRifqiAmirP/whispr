@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma";
 
-interface Params {
-  params: {
-    uuid: string;
-  };
-}
-
 // GET ONE USER
-export async function GET(_: Request, { params }: Params) {
+export async function GET(
+  _: Request,
+  { params }: { params: { uuid: string } }
+) {
   const user = await prisma.users.findUnique({
     where: { uuid: params.uuid },
   });
@@ -21,7 +18,10 @@ export async function GET(_: Request, { params }: Params) {
 }
 
 // UPDATE USER
-export async function PUT(req: Request, { params }: Params) {
+export async function PUT(
+  req: Request,
+  { params }: { params: { uuid: string } }
+) {
   const body = await req.json();
 
   const user = await prisma.users.update({
@@ -39,11 +39,10 @@ export async function PUT(req: Request, { params }: Params) {
 
 // DELETE USER
 export async function DELETE(
-  _: Request,
-  { params }: { params: Promise<{ uuid: string }> },
+_: Request,
+  { params }: { params: { uuid: string } }
 ) {
-  const { uuid } = await params;
-  console.log("Deleting UUID:", uuid);
+  const { uuid } = params;
 
   await prisma.users.delete({
     where: { uuid },
