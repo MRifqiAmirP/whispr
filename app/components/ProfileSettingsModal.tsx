@@ -12,7 +12,7 @@ interface Props {
     name: string;
     gender: string;
     location: string;
-  }) => void;
+  }) => Promise<boolean>;
   statusSavedUser: boolean;
 }
 
@@ -22,12 +22,59 @@ export default function ProfileSettingsModal({
   onSave,
   statusSavedUser,
 }: Props) {
-  const [username, setUsername] = useState("rawruwino");
-  const [name, setName] = useState("Aruwino-chan");
-  const [gender, setGender] = useState("Male");
-  const [location, setLocation] = useState("New York, USA");
+  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState("");
+  const [location, setLocation] = useState("");
+  const [errors, setErrors] = useState<{
+    name?: string;
+    username?: string;
+  }>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    try {
+      setIsLoading(true);
+
+      const success = await onSave({
+        username,
+        name,
+        gender,
+        location,
+      });
+
+      if (success) {
+        onClose();
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const validate = () => {
+    const newErrors: any = {};
+
+    if (!name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    const usernameRegex = /^[a-z0-9_]+$/;
+
+    if (!username.trim()) {
+      newErrors.username = "Username is required";
+    } else if (!usernameRegex.test(username)) {
+      newErrors.username =
+        "Only lowercase letters, numbers, and underscore allowed";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -72,9 +119,17 @@ export default function ProfileSettingsModal({
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="text-black mt-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              onChange={(e) => {
+                setName(e.target.value);
+                setErrors((prev) => ({ ...prev, name: "" }));
+              }}
+              className={`text-black mt-2 w-full rounded-lg border ${
+                errors.name ? "border-red-500" : "border-gray-200"
+              } px-3 py-2 text-sm focus:border-blue-500 focus:outline-none`}
             />
+            {errors.name && (
+              <p className="mt-1 text-xs text-red-400">{errors.name}</p>
+            )}
             <p className="mt-1 text-xs text-gray-400">
               This is how you appear to others in chat rooms.
             </p>
@@ -88,9 +143,31 @@ export default function ProfileSettingsModal({
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className={`text-black mt-2 w-full rounded-lg border border-gray-200 ${!statusSavedUser ? "border-red-500" : ""} px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+              onChange={(e) => {
+                let value = e.target.value;
+
+                value = value.replace(/\s+/g, "");
+
+                value = value.toLowerCase();
+
+                setUsername(value);
+
+                setErrors((prev) => ({ ...prev, username: "" }));
+              }}
+              onKeyDown={(e) => {
+                if (e.key === " ") {
+                  e.preventDefault();
+                }
+              }}
+              className={`text-black mt-2 w-full rounded-lg border ${
+                errors.username || !statusSavedUser
+                  ? "border-red-500"
+                  : "border-gray-200"
+              } px-3 py-2 text-sm focus:border-blue-500 focus:outline-none`}
             />
+            {errors.username && (
+              <p className="mt-1 text-xs text-red-400">{errors.username}</p>
+            )}
             {!statusSavedUser && (
               <p className="mt-1 text-xs text-red-400">
                 This username is already taken.
@@ -175,17 +252,38 @@ export default function ProfileSettingsModal({
             Cancel
           </button>
           <button
-            onClick={() =>
-              onSave({
-                username,
-                name,
-                gender,
-                location,
-              })
-            }
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            disabled={isLoading || !name.trim() || !username.trim()}
+            onClick={handleSubmit}
+            className={`rounded-lg px-4 py-2 text-sm font-medium text-white flex items-center justify-center gap-2
+            ${
+              isLoading || !name.trim() || !username.trim()
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Save Changes
+            {isLoading ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"
+                  />
+                </svg>
+                Saving...
+              </>
+            ) : (
+              "Save Changes"
+            )}
           </button>
         </div>
       </div>

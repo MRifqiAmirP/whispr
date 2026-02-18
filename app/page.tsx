@@ -75,27 +75,37 @@ export default function Home() {
     };
   }, []);
 
-  const handleSave = async (data: any) => {
-    const res = await fetch("/api/profile", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+  const handleSave = async (data: any): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-    const savedUser = await res.json();
+      const savedUser = await res.json();
 
-    localStorage.setItem("whispr_user", JSON.stringify(savedUser));
+      localStorage.setItem("whispr_user", JSON.stringify(savedUser));
 
-    if (savedUser.status != "success") {
-      setUser(savedUser);
-      setIsOpen(false);
-      setStatusSavedUser(true);
-      setSaveTrigger((prev) => prev + 1);
-    } else {
-      setIsOpen(true);
-      setStatusSavedUser(false);
+      console.log(savedUser);
+
+      if (savedUser.status !== "error") {
+        setUser(savedUser);
+        setIsOpen(false);
+        setStatusSavedUser(true);
+        setSaveTrigger((prev) => prev + 1);
+
+        return true;
+      } else {
+        setIsOpen(true);
+        setStatusSavedUser(false);
+        return false;
+      }
+    } catch (err) {
+      console.error(err);
+      return false;
     }
   };
 
