@@ -28,6 +28,7 @@ export default function ChatArea({ saveTrigger, totalUsers }: Props) {
   const [input, setInput] = useState("");
   const [dataUser, setDataUser] = useState<User | null>(null);
   const dataUserRef = useRef<User | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const checkLocalStorage = () => {
@@ -44,6 +45,12 @@ export default function ChatArea({ saveTrigger, totalUsers }: Props) {
 
     checkLocalStorage();
   }, [saveTrigger]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   useEffect(() => {
     dataUserRef.current = dataUser;
@@ -129,6 +136,8 @@ export default function ChatArea({ saveTrigger, totalUsers }: Props) {
         {messages.map((msg, i) => (
           <MessageBubble key={i} {...msg} />
         ))}
+
+        <div ref={bottomRef} />
       </div>
 
       {/* Input */}
