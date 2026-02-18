@@ -9,15 +9,17 @@ import OnlineUsersClient from "./OnlineUsersClient";
 
 export default function HomeClient({
   initialUsers,
-  totalUsers,
+  initialTotal,
 }: {
   initialUsers: any[];
-  totalUsers: number;
+  initialTotal: number;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [statusSavedUser, setStatusSavedUser] = useState(true);
   const [saveTrigger, setSaveTrigger] = useState(0);
+
+  const [totalUsers, setTotalUsers] = useState(initialTotal);
 
   useEffect(() => {
     const stored = localStorage.getItem("whispr_user");
@@ -97,7 +99,11 @@ export default function HomeClient({
           totalUsers={totalUsers}
         />
 
-        <OnlineUsersClient initialUsers={initialUsers} />
+        <OnlineUsersClient
+          initialUsers={initialUsers}
+          initialTotal={initialTotal}
+          onUpdate={setTotalUsers}
+        />
       </div>
 
       <ProfileSettingsModal
